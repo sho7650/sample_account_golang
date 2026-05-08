@@ -155,3 +155,42 @@ go test ./... -race                      # unit + integration, all packages
 TZ=Asia/Tokyo go test -tags=snapshot ./tests/...   # E2E golden-file diff
 go test -bench=. -benchmem ./...         # benchmarks
 ```
+
+## Release Flow
+
+Releases are fully automated via [release-please](https://github.com/googleapis/release-please) +
+[GoReleaser](https://goreleaser.com/). Three workflows live under `.github/workflows/`:
+
+| Workflow | Trigger | Responsibility |
+|---|---|---|
+| `ci.yml` | every push to `main`, every PR to `main` | go vet, golangci-lint, `go test -race`, snapshot tests |
+| `release-please.yml` (job 1) | push to `main` | Maintain a Release PR that bumps version + CHANGELOG from Conventional Commits |
+| `release-please.yml` (job 2) | when the Release PR is merged and a tag is created | GoReleaser builds linux/amd64, linux/arm64, darwin/arm64, windows/amd64 binaries and attaches them to the Release |
+
+### Adding a release-worthy change
+
+1. Use a Conventional Commits prefix on every commit/PR title (`feat:`, `fix:`, `perf:`, etc.)
+2. Land it on `main` via PR
+3. release-please opens or updates a "chore: release X.Y.Z" PR with the rolled-up CHANGELOG
+4. Merge that PR — the workflow tags `vX.Y.Z`, creates a GitHub Release, and triggers GoReleaser
+5. Binaries appear under https://github.com/sho7650/sample_account_golang/releases/tag/vX.Y.Z
+
+### Version source of truth
+
+`internal/version/version.go` carries `const Version = "X.Y.Z" // x-release-please-version`.
+release-please updates that line on every release; **do not edit it by hand** —
+the trailing comment is the marker the automation matches on.
+
+### Repo settings prerequisites
+
+- Settings → Actions → General → Workflow permissions: "Read and write permissions"
+- Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests": **enabled**
+
+Without these, release-please cannot open the Release PR with the default `GITHUB_TOKEN`.
+
+### Local validation
+
+```sh
+nix shell nixpkgs#goreleaser -c goreleaser check          # validate .goreleaser.yaml
+nix shell nixpkgs#goreleaser -c goreleaser release --snapshot --clean --skip=publish  # dry-run cross-build
+```

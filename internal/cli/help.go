@@ -9,8 +9,11 @@ import (
 
 // PrintHelp writes the usage / column-reference text to w. The list of
 // flags is pulled from the registry so help can never drift.
+//
+// Errors from the underlying writer are intentionally ignored: stdout
+// failures during --help cannot be meaningfully recovered from.
 func PrintHelp(w io.Writer, progName string, reg *field.Registry) {
-	fmt.Fprintf(w,
+	_, _ = fmt.Fprintf(w,
 		"Usage: %s [OPTIONS] [COUNT]\n"+
 			"\n"+
 			"Generate synthetic Japanese sample-account records as CSV on stdout.\n"+
@@ -25,10 +28,10 @@ func PrintHelp(w io.Writer, progName string, reg *field.Registry) {
 		progName, DefaultRowCount)
 
 	for _, f := range reg.All() {
-		fmt.Fprintf(w, "  -%c, --%-13s %s\n", f.ShortFlag(), f.LongName(), f.Description())
+		_, _ = fmt.Fprintf(w, "  -%c, --%-13s %s\n", f.ShortFlag(), f.LongName(), f.Description())
 	}
 
-	fmt.Fprintf(w,
+	_, _ = fmt.Fprintf(w,
 		"\n"+
 			"Aliases:\n"+
 			"  --telehpne            legacy alias for --telephone\n"+

@@ -89,8 +89,6 @@ func RunWithJobs(w io.Writer, count int, fields []field.Field, deps Deps, master
 
 func runSerial(w io.Writer, count int, fields []field.Field, deps Deps, masterSeed uint64) error {
 	bw := bufio.NewWriterSize(w, outBufSize)
-	defer bw.Flush()
-
 	personGen := gen.NewPersonGen(deps.Persons)
 	ageGen := gen.NewAgeGen(deps.Ages)
 	nowUnix := gen.CurrentTime().Unix()
@@ -103,7 +101,7 @@ func runSerial(w io.Writer, count int, fields []field.Field, deps Deps, masterSe
 			return err
 		}
 	}
-	return nil
+	return bw.Flush()
 }
 
 // runParallel generates `count` rows using `workers` goroutines and

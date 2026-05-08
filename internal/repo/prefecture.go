@@ -141,11 +141,11 @@ func DefaultPrefectures() (*PrefectureRepo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer pf.Close()
+	defer func() { _ = pf.Close() }()
 	af, err := dataFS.Open(addressesPath)
 	if err != nil {
 		return nil, err
 	}
-	defer af.Close()
+	defer func() { _ = af.Close() }()
 	return LoadPrefectures(pf, af)
 }

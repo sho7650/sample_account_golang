@@ -182,3 +182,46 @@
   - go:embed パース処理が一部 (117K 行の address.csv) を起動時に走る
   - 必要なら parquet 等の binary 形式に切り替えると更に縮む
 - `internal/runner/runner.go` の `runParallel` カバレッジが 90.9% — エラーパスの一部が未カバー
+
+---
+
+## 追加機能 (2026-05-08): CI / Release 自動化
+
+### Phase 1: release-please
+
+- [x] `.github/release-please-config.json` (release-type: go, bootstrap-sha=9d8f54b, extra-files で version.go 自動更新)
+- [x] `.github/.release-please-manifest.json` (`. : "0.5.0"`)
+- [x] `internal/version/version.go` に `// x-release-please-version` マーカー追加
+
+### Phase 2: CI ワークフロー
+
+- [x] `.github/workflows/ci.yml` (ubuntu-latest 単一)
+- [x] `actions/setup-go@v5` with `go-version-file: go.mod` (キャッシュ込み)
+- [x] go vet + golangci-lint v6 + go test -race -cover + snapshot test (TZ=Asia/Tokyo)
+- [x] coverage.out を artifact 化
+
+### Phase 3: GoReleaser
+
+- [x] `.goreleaser.yaml` v2 形式
+- [x] ターゲット 4 種: linux/amd64, linux/arm64, darwin/arm64, windows/amd64 (`ignore` で他を除外)
+- [x] tar.gz (linux/macOS) + zip (windows) + checksums.txt
+- [x] release-please の changelog を上書きしないよう `mode: keep-existing` + `changelog.disable: true`
+- [x] `.github/workflows/release-please.yml` の 2nd job で goreleaser を実行 (PAT 不要のため tag 連鎖制限を回避)
+
+### Phase 4: ドキュメント
+
+- [x] README.md にバイナリ DL セクション + Conventional Commits 規約
+- [x] CLAUDE.md にリリースフロー手順 + repo settings 前提条件
+- [x] .gitignore に `/.goreleaser.cache/` 追加
+
+### ローカル検証実績
+
+```
+$ goreleaser check         → 1 configuration file(s) validated
+$ goreleaser release --snapshot --clean --skip=publish → 4 ターゲットすべてビルド成功
+  - sample_account_*_linux_amd64.tar.gz   (ELF 64-bit, x86-64, stripped)
+  - sample_account_*_linux_arm64.tar.gz   (ELF 64-bit, ARM aarch64, stripped)
+  - sample_account_*_darwin_arm64.tar.gz  (Mach-O 64-bit arm64) ← 起動 + 出力一致確認済
+  - sample_account_*_windows_amd64.zip    (PE32+ x86-64)
+  - checksums.txt
+```

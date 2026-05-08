@@ -29,8 +29,8 @@ func run(argv []string, stdout, stderr *os.File) *exitErr {
 
 	args, err := cli.Parse(argv, reg)
 	if err != nil {
-		fmt.Fprintf(stderr, "%s: %s\n", prog, err)
-		fmt.Fprintf(stderr, "Try '%s --help' for usage.\n", prog)
+		_, _ = fmt.Fprintf(stderr, "%s: %s\n", prog, err)
+		_, _ = fmt.Fprintf(stderr, "Try '%s --help' for usage.\n", prog)
 		return &exitErr{Code: 2}
 	}
 	if args.Help {
@@ -40,17 +40,17 @@ func run(argv []string, stdout, stderr *os.File) *exitErr {
 
 	persons, err := repo.DefaultPersons()
 	if err != nil {
-		fmt.Fprintf(stderr, "%s: %s\n", prog, err)
+		_, _ = fmt.Fprintf(stderr, "%s: %s\n", prog, err)
 		return &exitErr{Code: 1}
 	}
 	prefRepo, err := repo.DefaultPrefectures()
 	if err != nil {
-		fmt.Fprintf(stderr, "%s: %s\n", prog, err)
+		_, _ = fmt.Fprintf(stderr, "%s: %s\n", prog, err)
 		return &exitErr{Code: 1}
 	}
 	ageRepo, err := repo.DefaultAges()
 	if err != nil {
-		fmt.Fprintf(stderr, "%s: %s\n", prog, err)
+		_, _ = fmt.Fprintf(stderr, "%s: %s\n", prog, err)
 		return &exitErr{Code: 1}
 	}
 
@@ -62,7 +62,7 @@ func run(argv []string, stdout, stderr *os.File) *exitErr {
 	}
 
 	if err := runner.RunWithJobs(stdout, args.Count, args.Selected, deps, gen.MasterSeed(), args.Jobs); err != nil {
-		fmt.Fprintf(stderr, "%s: %s\n", prog, err)
+		_, _ = fmt.Fprintf(stderr, "%s: %s\n", prog, err)
 		return &exitErr{Code: 1}
 	}
 	return nil

@@ -1,5 +1,6 @@
 /sample_account
 /dist/
+/.goreleaser.cache/
 /coverage.out
 /coverage.html
 /.direnv/
