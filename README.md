@@ -11,6 +11,20 @@
 - **再現可能** — `SAMPLE_ACCOUNT_SEED` / `SAMPLE_ACCOUNT_NOW` 環境変数
 - **依存パッケージゼロ** — Go 標準ライブラリのみ
 
+## ダウンロード
+
+GitHub Releases から各 OS / アーキテクチャの実行ファイルが取得できます:
+
+- Linux (`x86_64` / `arm64`): `sample_account_X.Y.Z_linux_amd64.tar.gz` / `sample_account_X.Y.Z_linux_arm64.tar.gz`
+- macOS (Apple Silicon): `sample_account_X.Y.Z_darwin_arm64.tar.gz`
+- Windows (`x86_64`): `sample_account_X.Y.Z_windows_amd64.zip`
+
+`checksums.txt` に SHA-256 が同梱されているので、解凍前に検証可能です。
+
+リリースは `main` への conventional commit が release-please によってまとめられ、
+Release PR を merge することでタグ + バイナリが自動生成されます (詳細は
+[CLAUDE.md](CLAUDE.md) のリリースフロー参照)。
+
 ## ビルド & 実行
 
 ### Nix (推奨)
@@ -174,6 +188,21 @@ gofumpt -w .                   # 整形
 ```
 
 カバレッジ: 85.4% (2026-05-08 時点)。
+
+### Conventional Commits
+
+リリースは `main` への [Conventional Commits](https://www.conventionalcommits.org/) を
+release-please が解析して自動化します。コミットメッセージ規約:
+
+| 接頭辞 | 意味 | バージョン影響 |
+|---|---|---|
+| `feat:` | 新機能 | minor bump (`0.5.0 → 0.6.0`) |
+| `fix:` | バグ修正 | patch bump (`0.5.0 → 0.5.1`) |
+| `feat!:` / footer に `BREAKING CHANGE:` | 互換性破壊 | major bump (`0.5.0 → 1.0.0`) |
+| `perf:` / `refactor:` | 性能・整理 | バンプなし、CHANGELOG に記載 |
+| `docs:` / `test:` / `chore:` / `ci:` / `build:` | 周辺作業 | バンプなし、CHANGELOG 非表示 |
+
+PR 作成時に上記 prefix を必ず使用してください。
 
 ## ライセンス
 

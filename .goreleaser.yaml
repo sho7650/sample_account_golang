@@ -1,0 +1,64 @@
+version: 2
+
+project_name: sample_account
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: sample_account
+    main: ./cmd/sample_account
+    binary: sample_account
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X sample_account/internal/version.Version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    # Only ship the platform/arch combinations the user asked for:
+    # linux/amd64, linux/arm64, darwin/arm64 (Apple Silicon only),
+    # windows/amd64. Skip everything else.
+    ignore:
+      - goos: darwin
+        goarch: amd64
+      - goos: windows
+        goarch: arm64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - id: default
+    # e.g. sample_account_0.5.0_linux_amd64.tar.gz
+    #      sample_account_0.5.0_windows_amd64.zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+# release-please owns the changelog — disable goreleaser's so we don't dupe it.
+changelog:
+  disable: true
+
+release:
+  # release-please created the GitHub Release; we only attach binaries to it.
+  mode: keep-existing
+  draft: false
+  prerelease: auto
+  replace_existing_artifacts: true

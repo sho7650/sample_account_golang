@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test + lint + snapshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Show toolchain
+        run: |
+          go version
+          go env GOOS GOARCH
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: --timeout=5m
+
+      - name: Build
+        run: go build -trimpath -ldflags="-s -w" -o sample_account ./cmd/sample_account
+
+      - name: Unit + integration tests (-race)
+        env:
+          TZ: Asia/Tokyo
+        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+
+      - name: Snapshot tests
+        env:
+          TZ: Asia/Tokyo
+        run: go test -tags=snapshot ./tests/...
+
+      - name: Coverage summary
+        run: go tool cover -func=coverage.out | tail -20
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+          if-no-files-found: error
+          retention-days: 14
