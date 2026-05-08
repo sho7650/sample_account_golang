@@ -1,0 +1,17 @@
+/sample_account
+/dist/
+/coverage.out
+/coverage.html
+/.direnv/
+/result
+/result-*
+*.test
+*.out
+*.prof
+.DS_Store
+
+# Local bench artifacts (e.g. /usr/bin/time -lp output redirected to *.txt)
+/*.txt
+/*.csv
+!tests/expected/*.csv
+!internal/repo/data/*.csv
